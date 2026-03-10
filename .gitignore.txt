@@ -1,0 +1,12 @@
+# Foldery kompilacji
+bin/
+obj/
+
+# Ustawienia IDE
+.vs/
+.vscode/
+
+# Baza danych (żeby nie wysyłać testowych zadań na GitHuba)
+*.db
+*.db-shm
+*.db-wal
