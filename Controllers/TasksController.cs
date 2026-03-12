@@ -5,6 +5,7 @@ using TaskManagerApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using SQLitePCL;
+using TaskManagerApi.Services;
 
 namespace TaskManagerApi.Controllers
 {
@@ -12,36 +13,45 @@ namespace TaskManagerApi.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
-        private readonly TaskDbContext _context;
+        private readonly ITaskService _taskService;
 
-        public TasksController(TaskDbContext context)
+        public TasksController(ITaskService taskService)
         {
-            _context = context;
+            _taskService = taskService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
         {
-            return await _context.Tasks.ToListAsync();
+            var tasks = await _taskService.GetAllAsync();
+            return Ok(tasks);
         }
 
         [HttpGet("{id}")]
 
         public async Task<ActionResult<TaskItem>> GetById(int id)
-
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null) return NotFound();
+            try
+            {
+                var task = await _taskService.GetByIdAsync(id);
 
-            return Ok(task);
+                if (task == null) 
+                    return NotFound(new {message = $"Zadanie o ID {id} nie istnieje"});
+
+                return Ok(task);
+            }
+            catch (Exception ex)
+
+            {
+                return StatusCode(500, "Wystąpił nieoczekiwany błąd serwera");
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<TaskItem>> Create(TaskItem task)
 
         {
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
+            var createdTask = await _taskService.CreateAsync(task);
 
             return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
         }
@@ -50,12 +60,10 @@ namespace TaskManagerApi.Controllers
 
         public async Task<IActionResult> Update(int id, TaskItem updatedTask)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null) return NotFound();
+            var success = await _taskService.UpdateAsync(id, updatedTask);
 
-            task.Name = updatedTask.Name;
-            task.Description = updatedTask.Description;
-            task.IsCompleted = updatedTask.IsCompleted;
+            if (!success ) 
+                return NotFound();
 
             return NoContent();
 
@@ -66,11 +74,10 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> Delete(int id)
 
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null) return NotFound();
+            var success = await _taskService.DeleteAsync(id);
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return NotFound();
             return NoContent();
 
         }
@@ -80,10 +87,7 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetCompleted()
 
         {
-            var completedTasks = await _context.Tasks
-                .Where(t => t.IsCompleted)
-                .ToListAsync();
-
+            var completedTasks = await _taskService.GetCompletedAsync();
             return Ok(completedTasks);
         }
 
@@ -92,10 +96,10 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> Complete(int id)
 
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(task => task.Id == id);
-            if (task == null) return NotFound();
+            var success = await _taskService.CompleteAsync(id);
+            if (!success)
+                return NotFound();
 
-            task.IsCompleted = true;
             return NoContent();
 
         }
@@ -105,9 +109,7 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetPending()
 
         {
-            var pendingTasks = await _context.Tasks
-                .Where(t => !t.IsCompleted)
-                .ToListAsync();
+            var pendingTasks = await _taskService.GetPendingAsync();
 
             return Ok(pendingTasks);
         }
@@ -117,8 +119,7 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> Count()
 
         {
-            var count = await _context.Tasks.CountAsync();
-
+            var count = await _taskService.CountAsync();
             return Ok(count);
         }
 
@@ -127,10 +128,9 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> Delete_Completed()
 
         {
-            var completedTasks = _context.Tasks.Where(t => t.IsCompleted).ToList();
-            _context.Tasks.RemoveRange(completedTasks);
-            await _context.SaveChangesAsync();
-
+            var success = await _taskService.DeleteCompletedAsync();
+            if (!success) 
+                return NotFound();
             return NoContent();
         }
 
@@ -139,19 +139,7 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<TaskStats>> GetStats()
 
         {
-            var total = await _context.Tasks.CountAsync();
-            var completed = await _context.Tasks.CountAsync(t => t.IsCompleted);
-            var pending = total - completed;
-            var percentageCompleted = total == 0 ? 0 : Math.Round((double)completed / total * 100, 2);
-
-            var stats = new TaskStats
-
-            {
-                Total = total,
-                Completed = completed,
-                Pending = pending,
-                PercentageCompleted = percentageCompleted
-            };
+            var stats = await _taskService.GetStatsAsync();
 
             return Ok(stats);
         }
@@ -160,25 +148,8 @@ namespace TaskManagerApi.Controllers
 
         public async Task<ActionResult<TaskStatsDetailed>> GetDetailed()
 
-        {
-            var total = await _context.Tasks.CountAsync();
-            var completed = await _context.Tasks.CountAsync(t => t.IsCompleted);
-            var pending = total - completed;
-            var PercentageCompleted = total == 0 ? 0 : Math.Round((double)completed / total * 100, 2);
-            var PercentagePending = total == 0 ? 0 : Math.Round((double)pending / total * 100, 2);
-            var Empty = total == 0 ? true : false;
-
-            var detailed = new TaskStatsDetailed
-
-            {
-                Total = total,
-                Completed = completed,
-                Pending = pending,
-                PercentageCompleted = PercentageCompleted,
-                PercentagePending = PercentagePending,
-                Empty = Empty
-            };
-
+        { 
+            var detailed = await _taskService.GetDetailedAsync();
             return Ok(detailed);
         }
 
@@ -186,19 +157,14 @@ namespace TaskManagerApi.Controllers
 
         public async Task<ActionResult<IEnumerable<TaskItem>>> Search(string title)
         {
-            var results = await _context.Tasks
-                .Where(t => t.Name.Contains(title))
-                .ToListAsync();
-
+            var results = await _taskService.SearchAsync(title);
             return Ok(results);
         }
 
         [HttpGet("category/{name}")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetByCategory (string name)
         {
-            var tasks = await _context.Tasks
-                .Where(t => t.Category.Name.ToLower() == name.ToLower())
-                .ToListAsync();
+            var tasks = await _taskService.GetByCategoryAsync(name);
             return Ok(tasks);
         }    
     }
