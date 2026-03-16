@@ -147,5 +147,50 @@ namespace TaskManagerApi.Services
                 .ToListAsync();
             return results;
         }
+        public async Task<bool> PatchToogleTaskAsync(int id)
+        {
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
+                return false;
+            task.IsCompleted = !task.IsCompleted;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<IEnumerable<TaskItem>> GetPagedAsync(int page, int pageSize)
+        {
+            var skip = (page - 1) * pageSize;
+
+            return await _context.Tasks
+                .Where(t => t.IsCompleted)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<TaskItem>> GetSortedAsync(string sort)
+        {
+            var query = _context.Tasks.AsQueryable();
+
+            switch (sort)
+            {
+                case "name":
+                    query = query.OrderBy(t => t.Name);
+                    break;
+
+                case "status":
+                    query = query.OrderBy(t => t.IsCompleted);
+                    break;
+
+                case "newest":
+                    query.OrderBy(t => t.Id);
+                    break;
+
+                default:
+                    query = query.OrderBy(t => t.Id);
+                    break;
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

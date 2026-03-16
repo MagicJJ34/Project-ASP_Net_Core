@@ -18,5 +18,8 @@ namespace TaskManagerApi.Services
         Task<TaskStatsDetailed> GetDetailedAsync();
         Task<IEnumerable<TaskItem>> SearchAsync(string title);
         Task<IEnumerable<TaskItem>> GetByCategoryAsync(string name);
+        Task<bool> PatchToogleTaskAsync(int id);
+        Task<IEnumerable<TaskItem>> GetPagedAsync(int page, int pageSize);
+        Task<IEnumerable<TaskItem>> GetSortedAsync(string sort);
     }
 }

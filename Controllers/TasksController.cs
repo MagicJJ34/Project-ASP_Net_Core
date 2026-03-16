@@ -35,8 +35,8 @@ namespace TaskManagerApi.Controllers
             {
                 var task = await _taskService.GetByIdAsync(id);
 
-                if (task == null) 
-                    return NotFound(new {message = $"Zadanie o ID {id} nie istnieje"});
+                if (task == null)
+                    return NotFound(new { message = $"Zadanie o ID {id} nie istnieje" });
 
                 return Ok(task);
             }
@@ -62,7 +62,7 @@ namespace TaskManagerApi.Controllers
         {
             var success = await _taskService.UpdateAsync(id, updatedTask);
 
-            if (!success ) 
+            if (!success)
                 return NotFound();
 
             return NoContent();
@@ -129,7 +129,7 @@ namespace TaskManagerApi.Controllers
 
         {
             var success = await _taskService.DeleteCompletedAsync();
-            if (!success) 
+            if (!success)
                 return NotFound();
             return NoContent();
         }
@@ -148,7 +148,7 @@ namespace TaskManagerApi.Controllers
 
         public async Task<ActionResult<TaskStatsDetailed>> GetDetailed()
 
-        { 
+        {
             var detailed = await _taskService.GetDetailedAsync();
             return Ok(detailed);
         }
@@ -162,10 +162,33 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet("category/{name}")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetByCategory (string name)
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetByCategory(string name)
         {
             var tasks = await _taskService.GetByCategoryAsync(name);
             return Ok(tasks);
-        }    
+        }
+
+        [HttpPatch("toogle/{id}")]
+        public async Task<IActionResult> Toogle(int id)
+        {
+            var success = await _taskService.PatchToogleTaskAsync(id);
+            if (!success)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpGet("paged")]
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetPaged(int page = 1, int pageSize = 5)
+        {
+            var tasks = await _taskService.GetPagedAsync(page, pageSize);
+            return Ok(tasks);
+        }
+
+        [HttpGet("sorted")]
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetSorted(string sort)
+        {
+            var tasks = await _taskService.GetSortedAsync(sort);
+            return Ok(tasks);
+        }
     }
 }
