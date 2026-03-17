@@ -3,6 +3,7 @@ using TaskManagerApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Numerics;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TaskManagerApi.Services
 {
@@ -134,16 +135,16 @@ namespace TaskManagerApi.Services
 
         }
         public async Task<IEnumerable<TaskItem>> SearchAsync(string title)
-        { 
+        {
             var results = await _context.Tasks
                 .Where(t => t.Name.Contains(title))
                 .ToListAsync();
             return results;
-        }    
+        }
         public async Task<IEnumerable<TaskItem>> GetByCategoryAsync(string name)
         {
             var results = await _context.Tasks
-                .Where(t=>t.Category.Name.ToLower() == name.ToLower())
+                .Where(t => t.Category.Name.ToLower() == name.ToLower())
                 .ToListAsync();
             return results;
         }
@@ -159,6 +160,15 @@ namespace TaskManagerApi.Services
         }
         public async Task<IEnumerable<TaskItem>> GetPagedAsync(int page, int pageSize)
         {
+            if (page <= 0)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 5;
+
+            if (pageSize > 50)
+                pageSize = 50;
+
             var skip = (page - 1) * pageSize;
 
             return await _context.Tasks
@@ -167,9 +177,11 @@ namespace TaskManagerApi.Services
                 .Take(pageSize)
                 .ToListAsync();
         }
-        public async Task<IEnumerable<TaskItem>> GetSortedAsync(string sort)
+        public async Task<IEnumerable<TaskItem>> GetSortedAsync(string? sort)
         {
             var query = _context.Tasks.AsQueryable();
+
+            sort = sort?.ToLower();
 
             switch (sort)
             {
@@ -191,6 +203,56 @@ namespace TaskManagerApi.Services
             }
 
             return await query.ToListAsync();
+        }
+        public async Task<IEnumerable<TaskItem>> GetSearchSortPageAsync(string? search, string? sort, bool? status, string? category, int page, int pageSize)
+        {
+            var query = _context.Tasks.AsQueryable();
+
+            if(!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(t => t.Name.ToLower().Contains(search.ToLower()));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(t => t.IsCompleted == status.Value);
+            }
+
+            if (category != null)
+            {
+                query = query.Where(t => t.Category.Name.ToLower().Contains(category.ToLower()));
+            }
+
+            sort = sort?.ToLower();
+
+                switch(sort)
+                {
+                case "name":
+                        query = query.OrderBy(t => t.Name);
+                    break;
+                case "status":
+                        query = query.OrderBy(t => t.IsCompleted);
+                    break;
+                default:
+                        query = query.OrderBy(t => t.Id);
+                    break;
+                }
+
+            if (page <= 0)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 1;
+
+            if (pageSize > 50)
+                pageSize = 50;
+
+            var skip = (page - 1) * pageSize;
+
+            return await query
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
         }
     }
 }

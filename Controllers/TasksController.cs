@@ -190,5 +190,22 @@ namespace TaskManagerApi.Controllers
             var tasks = await _taskService.GetSortedAsync(sort);
             return Ok(tasks);
         }
+        [HttpGet("query")]
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetQuery(
+            string? search ,
+            string? sort,
+            bool status,
+            string? category,
+            int page = 5,
+            int pageSize = 5)
+        {
+            if (page <= 0 || pageSize <= 0)
+            {
+                return BadRequest("Page i PageSize musi być większe od 0");
+
+            }
+            var tasks = await _taskService.GetSearchSortPageAsync(search, sort, status, category, page, pageSize);
+            return Ok(tasks);
+        }
     }
 }
