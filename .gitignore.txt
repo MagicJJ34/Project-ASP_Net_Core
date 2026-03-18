@@ -1,12 +1,13 @@
-# Foldery kompilacji
+# Build Folders
 bin/
 obj/
+Debug/
+Release/
 
-# Ustawienia IDE
+# User-specific files
+*.user
+*.suo
+
+# Visual Studio
 .vs/
-.vscode/
-
-# Baza danych (żeby nie wysyłać testowych zadań na GitHuba)
-*.db
-*.db-shm
-*.db-wal
+*.vscode/
