@@ -194,9 +194,9 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetQuery(
             string? search ,
             string? sort,
-            bool status,
             string? category,
-            int page = 5,
+            bool? status,
+            int page = 1,
             int pageSize = 5)
         {
             if (page <= 0 || pageSize <= 0)
@@ -204,7 +204,7 @@ namespace TaskManagerApi.Controllers
                 return BadRequest("Page i PageSize musi być większe od 0");
 
             }
-            var tasks = await _taskService.GetSearchSortPageAsync(search, sort, status, category, page, pageSize);
+            var tasks = await _taskService.GetSearchSortPageAsync(search, sort, category, status, page, pageSize);
             return Ok(tasks);
         }
     }

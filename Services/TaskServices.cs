@@ -204,9 +204,11 @@ namespace TaskManagerApi.Services
 
             return await query.ToListAsync();
         }
-        public async Task<IEnumerable<TaskItem>> GetSearchSortPageAsync(string? search, string? sort, bool? status, string? category, int page, int pageSize)
+        public async Task<IEnumerable<TaskItem>> GetSearchSortPageAsync(string? search, string? category, string? sort, bool? status, int page, int pageSize)
         {
-            var query = _context.Tasks.AsQueryable();
+            var query = _context.Tasks
+                .Include(t => t.Category)
+                .AsQueryable();
 
             if(!string.IsNullOrEmpty(search))
             {
@@ -218,7 +220,7 @@ namespace TaskManagerApi.Services
                 query = query.Where(t => t.IsCompleted == status.Value);
             }
 
-            if (category != null)
+            if (!string.IsNullOrEmpty(category))
             {
                 query = query.Where(t => t.Category.Name.ToLower().Contains(category.ToLower()));
             }
