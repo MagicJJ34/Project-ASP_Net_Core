@@ -16,17 +16,17 @@ namespace TaskManagerApi.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetAllAsync()
+        public async Task<IEnumerable<TaskItem>> GetAllTasksAsync()
         { return await _context.Tasks.ToListAsync(); }
-        public async Task<TaskItem?> GetByIdAsync(int id)
+        public async Task<TaskItem?> GetTaskByIdAsync(int id)
         { return await _context.Tasks.FindAsync(id); }
-        public async Task<TaskItem> CreateAsync(TaskItem task)
+        public async Task<TaskItem> CreateTaskAsync(TaskItem task)
         {
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
             return task;
         }
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteTaskAsync(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
@@ -37,7 +37,7 @@ namespace TaskManagerApi.Services
             return true;
         }
 
-        public async Task<bool> UpdateAsync(int id, TaskItem updatedTask)
+        public async Task<bool> UpdateTaskAsync(int id, TaskItem updatedTask)
         {
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
@@ -51,20 +51,20 @@ namespace TaskManagerApi.Services
             return true;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetCompletedAsync()
+        public async Task<IEnumerable<TaskItem>> GetCompletedTasksAsync()
         {
             return await _context.Tasks
                 .Where(t => t.IsCompleted)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<TaskItem>> GetPendingAsync()
+        public async Task<IEnumerable<TaskItem>> GetPendingTasksAsync()
         {
             return await _context.Tasks
                 .Where(t => !t.IsCompleted)
                 .ToListAsync();
         }
-        public async Task<bool> DeleteCompletedAsync()
+        public async Task<bool> DeleteCompletedTasksAsync()
         {
             var completedTask = await _context.Tasks
                 .Where(t => t.IsCompleted)
@@ -75,7 +75,7 @@ namespace TaskManagerApi.Services
             return true;
 
         }
-        public async Task<bool> CompleteAsync(int id)
+        public async Task<bool> PatchCompletedTasksAsync(int id)
         {
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
@@ -85,13 +85,13 @@ namespace TaskManagerApi.Services
             return true;
 
         }
-        public async Task<bool> CountAsync()
+        public async Task<bool> CountTasksAsync()
         {
             var count = await _context.Tasks.CountAsync();
             return count > 0;
         }
 
-        public async Task<TaskStats> GetStatsAsync()
+        public async Task<TaskStats> GetTasksStatsAsync()
         {
             var total = await _context.Tasks.CountAsync();
             var completed = await _context.Tasks.CountAsync(t => t.IsCompleted);
@@ -110,7 +110,7 @@ namespace TaskManagerApi.Services
 
             return stats;
         }
-        public async Task<TaskStatsDetailed> GetDetailedAsync()
+        public async Task<TaskStatsDetailed> GetDetailedStatsTasksAsync()
 
         {
             var total = await _context.Tasks.CountAsync();
@@ -134,7 +134,7 @@ namespace TaskManagerApi.Services
             return detailed;
 
         }
-        public async Task<IEnumerable<TaskItem>> SearchAsync(string title)
+        public async Task<IEnumerable<TaskItem>> SearchTasksAsync(string title)
         {
             var results = await _context.Tasks
                 .Where(t => t.Name.Contains(title))
@@ -177,7 +177,7 @@ namespace TaskManagerApi.Services
                 .Take(pageSize)
                 .ToListAsync();
         }
-        public async Task<IEnumerable<TaskItem>> GetSortedAsync(string? sort)
+        public async Task<IEnumerable<TaskItem>> GetSortedTasksAsync(string? sort)
         {
             var query = _context.Tasks.AsQueryable();
 
@@ -204,7 +204,7 @@ namespace TaskManagerApi.Services
 
             return await query.ToListAsync();
         }
-        public async Task<IEnumerable<TaskItem>> GetSearchSortPageAsync(string? search, string? category, string? sort, bool? status, int page, int pageSize)
+        public async Task<IEnumerable<TaskItem>> GetTasksWithFilters(string? search, string? sort, string? category,  bool? status, int page, int pageSize)
         {
             var query = _context.Tasks
                 .Include(t => t.Category)
@@ -255,6 +255,28 @@ namespace TaskManagerApi.Services
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+        public async Task<int> GetCountPendingTasksAsync()
+        {
+            return await _context.Tasks.CountAsync(t => !t.IsCompleted);
+        }
+
+        public async Task<TaskStats> GetSimpleStatsAsync()
+        {
+            var total = await _context.Tasks.CountAsync();
+            var completed = await _context.Tasks.CountAsync(t => t.IsCompleted);
+            var pending = total - completed;
+            var procentCompleted = total == 0 ? 0 : Math.Round((double)completed / total * 100, 2);
+
+            var results = new TaskStats()
+            {
+                Total = total,
+                Completed = completed,
+                Pending = pending,
+                PercentageCompleted = procentCompleted
+            };
+
+            return results;
         }
     }
 }

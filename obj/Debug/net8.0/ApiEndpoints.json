@@ -1,7 +1,7 @@
 [
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetAll",
+    "Method": "GetAllTasks",
     "RelativePath": "api/Tasks",
     "HttpMethod": "GET",
     "IsController": true,
@@ -21,7 +21,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Create",
+    "Method": "CreateTask",
     "RelativePath": "api/Tasks",
     "HttpMethod": "POST",
     "IsController": true,
@@ -47,7 +47,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetById",
+    "Method": "GetTaskById",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -73,7 +73,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Update",
+    "Method": "UpdateTask",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -94,7 +94,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Delete",
+    "Method": "DeleteTask",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -110,7 +110,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Complete",
+    "Method": "PatchCompletedTasks",
     "RelativePath": "api/Tasks/{id}/complete",
     "HttpMethod": "PATCH",
     "IsController": true,
@@ -152,7 +152,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetCompleted",
+    "Method": "GetCompletedTasks",
     "RelativePath": "api/Tasks/completed",
     "HttpMethod": "GET",
     "IsController": true,
@@ -172,7 +172,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Delete_Completed",
+    "Method": "DeleteCompletedTasks",
     "RelativePath": "api/Tasks/completed",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -182,7 +182,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Count",
+    "Method": "CountTasks",
     "RelativePath": "api/Tasks/count",
     "HttpMethod": "GET",
     "IsController": true,
@@ -192,7 +192,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetDetailed",
+    "Method": "GetDetailedTasksStats",
     "RelativePath": "api/Tasks/detailed",
     "HttpMethod": "GET",
     "IsController": true,
@@ -243,7 +243,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetPending",
+    "Method": "GetPendingTasks",
     "RelativePath": "api/Tasks/pending",
     "HttpMethod": "GET",
     "IsController": true,
@@ -263,7 +263,27 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetQuery",
+    "Method": "GetCountPendingTasksAsync",
+    "RelativePath": "api/Tasks/pending",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[TaskManagerApi.Models.TaskItem, TaskManagerApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "TaskManagerApi.Controllers.TasksController",
+    "Method": "GetTasksWithFilters",
     "RelativePath": "api/Tasks/query",
     "HttpMethod": "GET",
     "IsController": true,
@@ -314,7 +334,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Search",
+    "Method": "SearchTasks",
     "RelativePath": "api/Tasks/search",
     "HttpMethod": "GET",
     "IsController": true,
@@ -340,7 +360,27 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetSorted",
+    "Method": "GetSimpleStatsAsync",
+    "RelativePath": "api/Tasks/simple-stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "TaskManagerApi.Models.TaskStats",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "TaskManagerApi.Controllers.TasksController",
+    "Method": "GetSortedTasks",
     "RelativePath": "api/Tasks/sorted",
     "HttpMethod": "GET",
     "IsController": true,
@@ -366,7 +406,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "GetStats",
+    "Method": "GetTasksStats",
     "RelativePath": "api/Tasks/stats",
     "HttpMethod": "GET",
     "IsController": true,
@@ -386,7 +426,7 @@
   },
   {
     "ContainingType": "TaskManagerApi.Controllers.TasksController",
-    "Method": "Toogle",
+    "Method": "ToogleTask",
     "RelativePath": "api/Tasks/toogle/{id}",
     "HttpMethod": "PATCH",
     "IsController": true,

@@ -21,19 +21,19 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetAllTasks()
         {
-            var tasks = await _taskService.GetAllAsync();
+            var tasks = await _taskService.GetAllTasksAsync();
             return Ok(tasks);
         }
 
         [HttpGet("{id}")]
 
-        public async Task<ActionResult<TaskItem>> GetById(int id)
+        public async Task<ActionResult<TaskItem>> GetTaskById(int id)
         {
             try
             {
-                var task = await _taskService.GetByIdAsync(id);
+                var task = await _taskService.GetTaskByIdAsync(id);
 
                 if (task == null)
                     return NotFound(new { message = $"Zadanie o ID {id} nie istnieje" });
@@ -48,19 +48,19 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<TaskItem>> Create(TaskItem task)
+        public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
 
         {
-            var createdTask = await _taskService.CreateAsync(task);
+            var createdTask = await _taskService.CreateTaskAsync(task);
 
-            return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+            return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
         }
 
         [HttpPut("{id}")]
 
-        public async Task<IActionResult> Update(int id, TaskItem updatedTask)
+        public async Task<IActionResult> UpdateTask(int id, TaskItem updatedTask)
         {
-            var success = await _taskService.UpdateAsync(id, updatedTask);
+            var success = await _taskService.UpdateTaskAsync(id, updatedTask);
 
             if (!success)
                 return NotFound();
@@ -71,10 +71,10 @@ namespace TaskManagerApi.Controllers
 
         [HttpDelete("{id}")]
 
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteTask(int id)
 
         {
-            var success = await _taskService.DeleteAsync(id);
+            var success = await _taskService.DeleteTaskAsync(id);
 
             if (!success)
                 return NotFound();
@@ -84,19 +84,19 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("completed")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetCompleted()
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetCompletedTasks()
 
         {
-            var completedTasks = await _taskService.GetCompletedAsync();
+            var completedTasks = await _taskService.GetCompletedTasksAsync();
             return Ok(completedTasks);
         }
 
         [HttpPatch("{id}/complete")]
 
-        public async Task<IActionResult> Complete(int id)
+        public async Task<IActionResult> PatchCompletedTasks(int id)
 
         {
-            var success = await _taskService.CompleteAsync(id);
+            var success = await _taskService.PatchCompletedTasksAsync(id);
             if (!success)
                 return NotFound();
 
@@ -106,29 +106,29 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("pending")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetPending()
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetPendingTasks()
 
         {
-            var pendingTasks = await _taskService.GetPendingAsync();
+            var pendingTasks = await _taskService.GetPendingTasksAsync();
 
             return Ok(pendingTasks);
         }
 
         [HttpGet("count")]
 
-        public async Task<IActionResult> Count()
+        public async Task<IActionResult> CountTasks()
 
         {
-            var count = await _taskService.CountAsync();
+            var count = await _taskService.CountTasksAsync();
             return Ok(count);
         }
 
         [HttpDelete("completed")]
 
-        public async Task<IActionResult> Delete_Completed()
+        public async Task<IActionResult> DeleteCompletedTasks()
 
         {
-            var success = await _taskService.DeleteCompletedAsync();
+            var success = await _taskService.DeleteCompletedTasksAsync();
             if (!success)
                 return NotFound();
             return NoContent();
@@ -136,28 +136,28 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("stats")]
 
-        public async Task<ActionResult<TaskStats>> GetStats()
+        public async Task<ActionResult<TaskStats>> GetTasksStats()
 
         {
-            var stats = await _taskService.GetStatsAsync();
+            var stats = await _taskService.GetTasksStatsAsync();
 
             return Ok(stats);
         }
 
         [HttpGet("detailed")]
 
-        public async Task<ActionResult<TaskStatsDetailed>> GetDetailed()
+        public async Task<ActionResult<TaskStatsDetailed>> GetDetailedTasksStats()
 
         {
-            var detailed = await _taskService.GetDetailedAsync();
+            var detailed = await _taskService.GetDetailedStatsTasksAsync();
             return Ok(detailed);
         }
 
         [HttpGet("search")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> Search(string title)
+        public async Task<ActionResult<IEnumerable<TaskItem>>> SearchTasks(string title)
         {
-            var results = await _taskService.SearchAsync(title);
+            var results = await _taskService.SearchTasksAsync(title);
             return Ok(results);
         }
 
@@ -169,7 +169,7 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpPatch("toogle/{id}")]
-        public async Task<IActionResult> Toogle(int id)
+        public async Task<IActionResult> ToogleTask(int id)
         {
             var success = await _taskService.PatchToogleTaskAsync(id);
             if (!success)
@@ -185,13 +185,13 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet("sorted")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetSorted(string sort)
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetSortedTasks(string sort)
         {
-            var tasks = await _taskService.GetSortedAsync(sort);
+            var tasks = await _taskService.GetSortedTasksAsync(sort);
             return Ok(tasks);
         }
         [HttpGet("query")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetQuery(
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasksWithFilters(
             string? search ,
             string? sort,
             string? category,
@@ -204,8 +204,22 @@ namespace TaskManagerApi.Controllers
                 return BadRequest("Page i PageSize musi być większe od 0");
 
             }
-            var tasks = await _taskService.GetSearchSortPageAsync(search, sort, category, status, page, pageSize);
+            var tasks = await _taskService.GetTasksWithFilters(search, sort, category, status, page, pageSize);
             return Ok(tasks);
+        }
+
+        [HttpGet("pending")]
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetCountPendingTasksAsync()
+        
+        {
+            var tasks = await _taskService.GetCountPendingTasksAsync();
+            return Ok(tasks);
+        }
+
+        [HttpGet("simple-stats")]
+        public async Task<TaskStats> GetSimpleStatsAsync()
+        {
+            return await _taskService.GetSimpleStatsAsync();
         }
     }
 }
