@@ -23,35 +23,27 @@ namespace TaskManagerApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetAllTasks()
         {
-            var tasks = await _taskService.GetAllTasksAsync();
-            return Ok(tasks);
+            var data = await _taskService.GetAllTasksAsync();
+            return Ok(data);
         }
 
         [HttpGet("{id}")]
 
         public async Task<ActionResult<TaskItem>> GetTaskById(int id)
         {
-            try
-            {
-                var task = await _taskService.GetTaskByIdAsync(id);
+                var data = await _taskService.GetTaskByIdAsync(id);
 
-                if (task == null)
+                if (data == null)
                     return NotFound(new { message = $"Zadanie o ID {id} nie istnieje" });
 
-                return Ok(task);
-            }
-            catch (Exception ex)
-
-            {
-                return StatusCode(500, "Wystąpił nieoczekiwany błąd serwera");
-            }
+                return Ok(data);
         }
 
         [HttpPost]
         public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
 
         {
-            var createdTask = await _taskService.CreateTaskAsync(task);
+            var data = await _taskService.CreateTaskAsync(task);
 
             return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
         }
@@ -60,12 +52,12 @@ namespace TaskManagerApi.Controllers
 
         public async Task<IActionResult> UpdateTask(int id, TaskItem updatedTask)
         {
-            var success = await _taskService.UpdateTaskAsync(id, updatedTask);
+            var data = await _taskService.UpdateTaskAsync(id, updatedTask);
 
-            if (!success)
-                return NotFound();
+            if (!data)
+                return NotFound(new { message = $"Zadanie o ID{id} nie istnieje"});
 
-            return NoContent();
+            return Ok(data);
 
         }
 
@@ -74,11 +66,11 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> DeleteTask(int id)
 
         {
-            var success = await _taskService.DeleteTaskAsync(id);
+            var data = await _taskService.DeleteTaskAsync(id);
 
-            if (!success)
-                return NotFound();
-            return NoContent();
+            if (!data)
+                return NotFound(new {message = $"Zadanie o ID{id} nie istnieje"});
+            return Ok(new { message = $"Zadanie zostało usunięte"});
 
         }
 
@@ -87,8 +79,9 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetCompletedTasks()
 
         {
-            var completedTasks = await _taskService.GetCompletedTasksAsync();
-            return Ok(completedTasks);
+            var data
+                = await _taskService.GetCompletedTasksAsync();
+            return Ok(data);
         }
 
         [HttpPatch("{id}/complete")]
@@ -96,11 +89,11 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> PatchCompletedTasks(int id)
 
         {
-            var success = await _taskService.PatchCompletedTasksAsync(id);
-            if (!success)
-                return NotFound();
+            var data = await _taskService.PatchCompletedTasksAsync(id);
+            if (!data)
+                return NotFound(new {message=$"Zadanie o ID{id} nie istnieje"});
 
-            return NoContent();
+            return Ok(data);
 
         }
 
@@ -109,18 +102,18 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetPendingTasks()
 
         {
-            var pendingTasks = await _taskService.GetPendingTasksAsync();
+            var data = await _taskService.GetPendingTasksAsync();
 
-            return Ok(pendingTasks);
+            return Ok(data);
         }
 
         [HttpGet("count")]
 
-        public async Task<IActionResult> CountTasks()
+        public async Task<ActionResult<int>> CountTasks()
 
         {
-            var count = await _taskService.CountTasksAsync();
-            return Ok(count);
+            var data = await _taskService.CountTasksAsync();
+            return Ok(data);
         }
 
         [HttpDelete("completed")]
@@ -128,10 +121,10 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> DeleteCompletedTasks()
 
         {
-            var success = await _taskService.DeleteCompletedTasksAsync();
-            if (!success)
-                return NotFound();
-            return NoContent();
+            var data = await _taskService.DeleteCompletedTasksAsync();
+            if (!data)
+                return NotFound(new {message = $"Zadania nie istnieją"});
+            return Ok(new {message=$"Zadania zostały usunięte"});
         }
 
         [HttpGet("stats")]
@@ -139,9 +132,9 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<TaskStats>> GetTasksStats()
 
         {
-            var stats = await _taskService.GetTasksStatsAsync();
+            var data = await _taskService.GetTasksStatsAsync();
 
-            return Ok(stats);
+            return Ok(data);
         }
 
         [HttpGet("detailed")]
@@ -149,46 +142,46 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<TaskStatsDetailed>> GetDetailedTasksStats()
 
         {
-            var detailed = await _taskService.GetDetailedStatsTasksAsync();
-            return Ok(detailed);
+            var data = await _taskService.GetDetailedStatsTasksAsync();
+            return Ok(data);
         }
 
         [HttpGet("search")]
 
         public async Task<ActionResult<IEnumerable<TaskItem>>> SearchTasks(string title)
         {
-            var results = await _taskService.SearchTasksAsync(title);
-            return Ok(results);
+            var data= await _taskService.SearchTasksAsync(title);
+            return Ok(data);
         }
 
         [HttpGet("category/{name}")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetByCategory(string name)
         {
-            var tasks = await _taskService.GetByCategoryAsync(name);
-            return Ok(tasks);
+            var data = await _taskService.GetByCategoryAsync(name);
+            return Ok(data);
         }
 
         [HttpPatch("toogle/{id}")]
         public async Task<IActionResult> ToogleTask(int id)
         {
-            var success = await _taskService.PatchToogleTaskAsync(id);
-            if (!success)
-                return NotFound();
-            return NoContent();
+            var data = await _taskService.PatchToogleTaskAsync(id);
+            if (!data)
+                return NotFound(new { message = $"Zadanie o ID{id} nie istnieje" } );
+            return Ok(data);
         }
 
         [HttpGet("paged")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetPaged(int page = 1, int pageSize = 5)
         {
-            var tasks = await _taskService.GetPagedAsync(page, pageSize);
-            return Ok(tasks);
+            var data = await _taskService.GetPagedAsync(page, pageSize);
+            return Ok(data);
         }
 
         [HttpGet("sorted")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetSortedTasks(string sort)
         {
-            var tasks = await _taskService.GetSortedTasksAsync(sort);
-            return Ok(tasks);
+            var data = await _taskService.GetSortedTasksAsync(sort);
+            return Ok(data);
         }
         [HttpGet("query")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasksWithFilters(
@@ -204,16 +197,16 @@ namespace TaskManagerApi.Controllers
                 return BadRequest("Page i PageSize musi być większe od 0");
 
             }
-            var tasks = await _taskService.GetTasksWithFilters(search, sort, category, status, page, pageSize);
-            return Ok(tasks);
+            var data = await _taskService.GetTasksWithFilters(search, sort, category, status, page, pageSize);
+            return Ok(data);
         }
 
         [HttpGet("pending")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetCountPendingTasksAsync()
         
         {
-            var tasks = await _taskService.GetCountPendingTasksAsync();
-            return Ok(tasks);
+            var data = await _taskService.GetCountPendingTasksAsync();
+            return Ok(data);
         }
 
         [HttpGet("simple-stats")]
