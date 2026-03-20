@@ -148,7 +148,7 @@ namespace TaskManagerApi.Services
                 .ToListAsync();
             return results;
         }
-        public async Task<bool> PatchToogleTaskAsync(int id)
+        public async Task<bool> PatchToggleTaskAsync(int id)
         {
             var task = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == id);

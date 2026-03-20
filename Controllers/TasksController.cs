@@ -4,7 +4,6 @@ using TaskManagerApi.Data;
 using TaskManagerApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using SQLitePCL;
 using TaskManagerApi.Services;
 
 namespace TaskManagerApi.Controllers
@@ -45,7 +44,7 @@ namespace TaskManagerApi.Controllers
         {
             var data = await _taskService.CreateTaskAsync(task);
 
-            return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
+            return CreatedAtAction(nameof(GetTaskById), new { id = data.Id }, data);
         }
 
         [HttpPut("{id}")]
@@ -57,7 +56,7 @@ namespace TaskManagerApi.Controllers
             if (!data)
                 return NotFound(new { message = $"Zadanie o ID{id} nie istnieje"});
 
-            return Ok(data);
+            return NoContent();
 
         }
 
@@ -70,8 +69,7 @@ namespace TaskManagerApi.Controllers
 
             if (!data)
                 return NotFound(new {message = $"Zadanie o ID{id} nie istnieje"});
-            return Ok(new { message = $"Zadanie zostało usunięte"});
-
+            return NoContent();
         }
 
         [HttpGet("completed")]
@@ -93,7 +91,7 @@ namespace TaskManagerApi.Controllers
             if (!data)
                 return NotFound(new {message=$"Zadanie o ID{id} nie istnieje"});
 
-            return Ok(data);
+            return NoContent();
 
         }
 
@@ -124,7 +122,7 @@ namespace TaskManagerApi.Controllers
             var data = await _taskService.DeleteCompletedTasksAsync();
             if (!data)
                 return NotFound(new {message = $"Zadania nie istnieją"});
-            return Ok(new {message=$"Zadania zostały usunięte"});
+            return NoContent();
         }
 
         [HttpGet("stats")]
@@ -161,13 +159,13 @@ namespace TaskManagerApi.Controllers
             return Ok(data);
         }
 
-        [HttpPatch("toogle/{id}")]
-        public async Task<IActionResult> ToogleTask(int id)
+        [HttpPatch("toggle/{id}")]
+        public async Task<IActionResult> ToggleTask(int id)
         {
-            var data = await _taskService.PatchToogleTaskAsync(id);
+            var data = await _taskService.PatchToggleTaskAsync(id);
             if (!data)
                 return NotFound(new { message = $"Zadanie o ID{id} nie istnieje" } );
-            return Ok(data);
+            return NoContent();
         }
 
         [HttpGet("paged")]
@@ -201,7 +199,7 @@ namespace TaskManagerApi.Controllers
             return Ok(data);
         }
 
-        [HttpGet("pending")]
+        [HttpGet("count-pending")]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetCountPendingTasksAsync()
         
         {
@@ -210,9 +208,10 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet("simple-stats")]
-        public async Task<TaskStats> GetSimpleStatsAsync()
+        public async Task<ActionResult<TaskStats>> GetSimpleStatsAsync()
         {
-            return await _taskService.GetSimpleStatsAsync();
+            var data =  await _taskService.GetSimpleStatsAsync();
+            return Ok(data);
         }
     }
 }
