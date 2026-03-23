@@ -5,6 +5,7 @@ using TaskManagerApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskManagerApi.Services;
+using TaskManagerApi.DTOs;
 
 namespace TaskManagerApi.Controllers
 {
@@ -28,23 +29,45 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("{id}")]
 
-        public async Task<ActionResult<TaskItem>> GetTaskById(int id)
+        public async Task<ActionResult<TaskResponseDto>> GetTaskById(int id)
         {
-                var data = await _taskService.GetTaskByIdAsync(id);
+            var data = await _taskService.GetTaskByIdAsync(id);
+
+            var response = new TaskResponseDto
+            {
+                Id = data.Id,
+                Title = data.Title,
+                Description = data.Description,
+                IsCompleted = data.IsCompleted,
+            };
 
                 if (data == null)
                     return NotFound(new { message = $"Zadanie o ID {id} nie istnieje" });
 
-                return Ok(data);
+                return Ok(response);
         }
 
         [HttpPost]
-        public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
+        public async Task<ActionResult<TaskResponseDto>> CreateTask(CreateTaskDto dto)
 
         {
-            var data = await _taskService.CreateTaskAsync(task);
+            var task = new TaskItem
+            {
+                Title = dto.Title,
+                Description = dto.Description,
+            };
 
-            return CreatedAtAction(nameof(GetTaskById), new { id = data.Id }, data);
+            var created = await _taskService.CreateTaskAsync(task);
+
+            var response = new TaskResponseDto
+            {
+                Id = created.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                IsCompleted = created.IsCompleted,
+            };
+
+            return CreatedAtAction(nameof(GetTaskById), new { id = response.Id }, response);
         }
 
         [HttpPut("{id}")]

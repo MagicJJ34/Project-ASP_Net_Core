@@ -43,7 +43,7 @@ namespace TaskManagerApi.Services
             if (task == null)
                 return false;
 
-            task.Name = updatedTask.Name;
+            task.Title = updatedTask.Title;
             task.Description = updatedTask.Description;
             task.IsCompleted = updatedTask.IsCompleted;
 
@@ -137,7 +137,7 @@ namespace TaskManagerApi.Services
         public async Task<IEnumerable<TaskItem>> SearchTasksAsync(string title)
         {
             var results = await _context.Tasks
-                .Where(t => t.Name.Contains(title))
+                .Where(t => t.Title.Contains(title))
                 .ToListAsync();
             return results;
         }
@@ -186,7 +186,7 @@ namespace TaskManagerApi.Services
             switch (sort)
             {
                 case "name":
-                    query = query.OrderBy(t => t.Name);
+                    query = query.OrderBy(t => t.Title);
                     break;
 
                 case "status":
@@ -212,7 +212,7 @@ namespace TaskManagerApi.Services
 
             if(!string.IsNullOrEmpty(search))
             {
-                query = query.Where(t => t.Name.ToLower().Contains(search.ToLower()));
+                query = query.Where(t => t.Title.ToLower().Contains(search.ToLower()));
             }
 
             if (status.HasValue)
@@ -230,7 +230,7 @@ namespace TaskManagerApi.Services
                 switch(sort)
                 {
                 case "name":
-                        query = query.OrderBy(t => t.Name);
+                        query = query.OrderBy(t => t.Title);
                     break;
                 case "status":
                         query = query.OrderBy(t => t.IsCompleted);
