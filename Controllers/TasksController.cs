@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskManagerApi.Services;
 using TaskManagerApi.DTOs;
+using System.Linq;
+using System.Reflection;
 
 namespace TaskManagerApi.Controllers
 {
@@ -21,10 +23,20 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetAllTasks()
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetAllTasks()
         {
             var data = await _taskService.GetAllTasksAsync();
-            return Ok(data);
+
+            var response = data.Select(task => new TaskResponseDto
+            
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+            });
+            ;
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
@@ -72,11 +84,17 @@ namespace TaskManagerApi.Controllers
 
         [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateTask(int id, TaskItem updatedTask)
+        public async Task<IActionResult> UpdateTask(int id, UpdateTaskDto dto)
         {
-            var data = await _taskService.UpdateTaskAsync(id, updatedTask);
+            var task = new TaskItem
+            {
+                Title = dto.Title,
+                Description = dto.Description,
+                IsCompleted = dto.IsCompleted,
+            };
+            var success = await _taskService.UpdateTaskAsync(id, task);
 
-            if (!data)
+            if (!success)
                 return NotFound(new { message = $"Zadanie o ID{id} nie istnieje"});
 
             return NoContent();
@@ -169,10 +187,19 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("search")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> SearchTasks(string title)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> SearchTasks(string title)
         {
             var data= await _taskService.SearchTasksAsync(title);
-            return Ok(data);
+
+            var response = data.Select(task => new TaskResponseDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+            });
+
+            return Ok(response);
         }
 
         [HttpGet("category/{name}")]
@@ -192,24 +219,44 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet("paged")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetPaged(int page = 1, int pageSize = 5)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetPaged(int page = 1, int pageSize = 5)
         {
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest("Page i PageSize musi być większe od 0");
+
             var data = await _taskService.GetPagedAsync(page, pageSize);
-            return Ok(data);
+
+            var response = data.Select(task => new TaskResponseDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+            });
+
+            return Ok(response);
         }
 
         [HttpGet("sorted")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetSortedTasks(string sort)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetSortedTasks([FromQuery]string sort)
         {
             var data = await _taskService.GetSortedTasksAsync(sort);
-            return Ok(data);
+
+            var response = data.Select(task => new TaskResponseDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+            });
+            return Ok(response);
         }
         [HttpGet("query")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasksWithFilters(
-            string? search ,
-            string? sort,
-            string? category,
-            bool? status,
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksWithFilters(
+            [FromQuery] string? search ,
+            [FromQuery] string? sort,
+            [FromQuery] string? category,
+            [FromQuery] bool? status,
             int page = 1,
             int pageSize = 5)
         {
@@ -219,7 +266,16 @@ namespace TaskManagerApi.Controllers
 
             }
             var data = await _taskService.GetTasksWithFilters(search, sort, category, status, page, pageSize);
-            return Ok(data);
+
+            var response = data.Select(task => new TaskResponseDto
+            {
+                Id= task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+            });
+
+            return Ok(response);
         }
 
         [HttpGet("count-pending")]
