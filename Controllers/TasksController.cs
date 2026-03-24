@@ -8,6 +8,7 @@ using TaskManagerApi.Services;
 using TaskManagerApi.DTOs;
 using System.Linq;
 using System.Reflection;
+using AutoMapper;
 
 namespace TaskManagerApi.Controllers
 {
@@ -16,10 +17,12 @@ namespace TaskManagerApi.Controllers
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
+        private readonly IMapper _mapper;
 
-        public TasksController(ITaskService taskService)
+        public TasksController(ITaskService taskService, IMapper mapper)
         {
             _taskService = taskService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -27,15 +30,8 @@ namespace TaskManagerApi.Controllers
         {
             var data = await _taskService.GetAllTasksAsync();
 
-            var response = data.Select(task => new TaskResponseDto
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
             
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-            });
-            ;
             return Ok(response);
         }
 
