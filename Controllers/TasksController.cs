@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TaskManagerApi.Data;
 using TaskManagerApi.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskManagerApi.Services;
 using TaskManagerApi.DTOs;
 using System.Linq;
-using System.Reflection;
 using AutoMapper;
 
 namespace TaskManagerApi.Controllers
@@ -41,39 +38,20 @@ namespace TaskManagerApi.Controllers
         {
             var data = await _taskService.GetTaskByIdAsync(id);
 
-            var response = new TaskResponseDto
-            {
-                Id = data.Id,
-                Title = data.Title,
-                Description = data.Description,
-                IsCompleted = data.IsCompleted,
-            };
-
-                if (data == null)
-                    return NotFound(new { message = $"Zadanie o ID {id} nie istnieje" });
-
-                return Ok(response);
+            var response = _mapper.Map<TaskResponseDto>(data);
+   
+            return Ok(response);
         }
 
         [HttpPost]
         public async Task<ActionResult<TaskResponseDto>> CreateTask(CreateTaskDto dto)
 
         {
-            var task = new TaskItem
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-            };
+            var task = _mapper.Map<TaskItem>(dto);
 
             var created = await _taskService.CreateTaskAsync(task);
 
-            var response = new TaskResponseDto
-            {
-                Id = created.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                IsCompleted = created.IsCompleted,
-            };
+            var response = _mapper.Map<TaskResponseDto>(created);
 
             return CreatedAtAction(nameof(GetTaskById), new { id = response.Id }, response);
         }
@@ -82,16 +60,9 @@ namespace TaskManagerApi.Controllers
 
         public async Task<IActionResult> UpdateTask(int id, UpdateTaskDto dto)
         {
-            var task = new TaskItem
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                IsCompleted = dto.IsCompleted,
-            };
-            var success = await _taskService.UpdateTaskAsync(id, task);
+            var task = _mapper.Map<TaskItem>(dto);
 
-            if (!success)
-                return NotFound(new { message = $"Zadanie o ID{id} nie istnieje"});
+            var success = await _taskService.UpdateTaskAsync(id, task);
 
             return NoContent();
 
@@ -102,21 +73,19 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> DeleteTask(int id)
 
         {
-            var data = await _taskService.DeleteTaskAsync(id);
-
-            if (!data)
-                return NotFound(new {message = $"Zadanie o ID{id} nie istnieje"});
+            await _taskService.DeleteTaskAsync(id);
+            
             return NoContent();
         }
 
         [HttpGet("completed")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetCompletedTasks()
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetCompletedTasks()
 
         {
-            var data
-                = await _taskService.GetCompletedTasksAsync();
-            return Ok(data);
+            var data = await _taskService.GetCompletedTasksAsync();
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
+            return Ok(response);
         }
 
         [HttpPatch("{id}/complete")]
@@ -125,21 +94,21 @@ namespace TaskManagerApi.Controllers
 
         {
             var data = await _taskService.PatchCompletedTasksAsync(id);
-            if (!data)
-                return NotFound(new {message=$"Zadanie o ID{id} nie istnieje"});
-
+            
             return NoContent();
 
         }
 
         [HttpGet("pending")]
 
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetPendingTasks()
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetPendingTasks()
 
         {
             var data = await _taskService.GetPendingTasksAsync();
 
-            return Ok(data);
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
+
+            return Ok(response);
         }
 
         [HttpGet("count")]
@@ -157,8 +126,7 @@ namespace TaskManagerApi.Controllers
 
         {
             var data = await _taskService.DeleteCompletedTasksAsync();
-            if (!data)
-                return NotFound(new {message = $"Zadania nie istnieją"});
+            
             return NoContent();
         }
 
@@ -183,34 +151,27 @@ namespace TaskManagerApi.Controllers
 
         [HttpGet("search")]
 
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> SearchTasks(string title)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> SearchTasks([FromQuery]string title)
         {
             var data= await _taskService.SearchTasksAsync(title);
 
-            var response = data.Select(task => new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-            });
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
 
             return Ok(response);
         }
 
         [HttpGet("category/{name}")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetByCategory(string name)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetByCategory(string name)
         {
             var data = await _taskService.GetByCategoryAsync(name);
-            return Ok(data);
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
+            return Ok(response);
         }
 
         [HttpPatch("toggle/{id}")]
         public async Task<IActionResult> ToggleTask(int id)
         {
             var data = await _taskService.PatchToggleTaskAsync(id);
-            if (!data)
-                return NotFound(new { message = $"Zadanie o ID{id} nie istnieje" } );
             return NoContent();
         }
 
@@ -218,18 +179,11 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetPaged(int page = 1, int pageSize = 5)
         {
             if (page <= 0 || pageSize <= 0)
-                return BadRequest("Page i PageSize musi być większe od 0");
+                throw new ArgumentException("Page i PageSize musi być większe od 0");
 
             var data = await _taskService.GetPagedAsync(page, pageSize);
 
-            var response = data.Select(task => new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-            });
-
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
             return Ok(response);
         }
 
@@ -238,13 +192,8 @@ namespace TaskManagerApi.Controllers
         {
             var data = await _taskService.GetSortedTasksAsync(sort);
 
-            var response = data.Select(task => new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-            });
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
+
             return Ok(response);
         }
         [HttpGet("query")]
@@ -257,25 +206,17 @@ namespace TaskManagerApi.Controllers
             int pageSize = 5)
         {
             if (page <= 0 || pageSize <= 0)
-            {
-                return BadRequest("Page i PageSize musi być większe od 0");
+                throw new ArgumentException("Page i PageSize musi być większe od 0");
 
-            }
             var data = await _taskService.GetTasksWithFilters(search, sort, category, status, page, pageSize);
 
-            var response = data.Select(task => new TaskResponseDto
-            {
-                Id= task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-            });
+            var response = _mapper.Map<IEnumerable<TaskResponseDto>>(data);
 
             return Ok(response);
         }
 
         [HttpGet("count-pending")]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetCountPendingTasksAsync()
+        public async Task<ActionResult<int>> GetCountPendingTasksAsync()
         
         {
             var data = await _taskService.GetCountPendingTasksAsync();

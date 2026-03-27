@@ -13,7 +13,7 @@ namespace TaskManagerApi.Services
         Task<IEnumerable<TaskItem>> GetPendingTasksAsync();
         Task<bool> DeleteCompletedTasksAsync();
         Task<bool> PatchCompletedTasksAsync(int id);
-        Task<bool> CountTasksAsync();
+        Task<int> CountTasksAsync();
         Task<TaskStats> GetTasksStatsAsync();
         Task<TaskStatsDetailed> GetDetailedStatsTasksAsync();
         Task<IEnumerable<TaskItem>> SearchTasksAsync(string title);

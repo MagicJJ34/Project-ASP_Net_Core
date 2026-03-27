@@ -19,7 +19,12 @@ namespace TaskManagerApi.Services
         public async Task<IEnumerable<TaskItem>> GetAllTasksAsync()
         { return await _context.Tasks.ToListAsync(); }
         public async Task<TaskItem?> GetTaskByIdAsync(int id)
-        { return await _context.Tasks.FindAsync(id); }
+        { 
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+                throw new KeyNotFoundException($"Zadanie o ID {id} nie istnieje");
+            return task;
+        }
         public async Task<TaskItem> CreateTaskAsync(TaskItem task)
         {
             _context.Tasks.Add(task);
@@ -30,7 +35,7 @@ namespace TaskManagerApi.Services
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
-                return false;
+                throw new KeyNotFoundException($"Zadanie o ID {id} nie istnieje");
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
@@ -41,7 +46,7 @@ namespace TaskManagerApi.Services
         {
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
-                return false;
+                throw new KeyNotFoundException($"Zadanie o ID {id} nie istnieje");
 
             task.Title = updatedTask.Title;
             task.Description = updatedTask.Description;
@@ -79,16 +84,15 @@ namespace TaskManagerApi.Services
         {
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
-                return false;
+                throw new KeyNotFoundException($"Zadanie o ID {id} nie istnieje");
             task.IsCompleted = true;
             await _context.SaveChangesAsync();
             return true;
 
         }
-        public async Task<bool> CountTasksAsync()
+        public async Task<int> CountTasksAsync()
         {
-            var count = await _context.Tasks.CountAsync();
-            return count > 0;
+            return await _context.Tasks.CountAsync();
         }
 
         public async Task<TaskStats> GetTasksStatsAsync()
@@ -153,7 +157,7 @@ namespace TaskManagerApi.Services
             var task = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
-                return false;
+                throw new KeyNotFoundException($"Zadanie o ID {id} nie istnieje");
             task.IsCompleted = !task.IsCompleted;
             await _context.SaveChangesAsync();
             return true;
@@ -172,7 +176,6 @@ namespace TaskManagerApi.Services
             var skip = (page - 1) * pageSize;
 
             return await _context.Tasks
-                .Where(t => t.IsCompleted)
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
@@ -194,7 +197,7 @@ namespace TaskManagerApi.Services
                     break;
 
                 case "newest":
-                    query.OrderBy(t => t.Id);
+                    query.OrderByDescending(t => t.Id);
                     break;
 
                 default:
@@ -222,7 +225,7 @@ namespace TaskManagerApi.Services
 
             if (!string.IsNullOrEmpty(category))
             {
-                query = query.Where(t => t.Category.Name.ToLower().Contains(category.ToLower()));
+                query = query.Where(t => t.Category != null && t.Category.Name.ToLower().Contains(category.ToLower()));
             }
 
             sort = sort?.ToLower();
